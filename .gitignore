@@ -1,0 +1,18 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.dev.vars
+.dev.vars.*
+.claude/settings.local.json
+.mcp.json
+.wrangler
+.env
+.env.*
+*.local
