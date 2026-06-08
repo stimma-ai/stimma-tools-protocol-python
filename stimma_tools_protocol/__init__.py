@@ -25,7 +25,7 @@ def was_provided(params: dict, key: str) -> bool:
     and "explicitly set" (even if set to the default value).
 
     Args:
-        params: The parameters or input dict passed to the tool
+        params: The parameters dict passed to the tool
         key: The parameter name to check
 
     Returns:
