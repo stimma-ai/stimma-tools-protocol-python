@@ -195,6 +195,8 @@ class ToolDescriptor:
     output_schema: dict = field(default_factory=dict)
     layout: Optional[list] = None  # Top-level layout sections for UI grouping
     metadata: dict = field(default_factory=dict)
+    model_vendor: Optional[str] = None  # Lab/company that made the model (e.g. "black-forest-labs")
+    model: Optional[str] = None  # Specific model, tight to parameters (e.g. "flux2-klein-9b")
 
     def to_dict(self) -> dict:
         result = {
@@ -207,6 +209,10 @@ class ToolDescriptor:
         }
         if self.layout is not None:
             result["layout"] = self.layout
+        if self.model_vendor is not None:
+            result["model_vendor"] = self.model_vendor
+        if self.model is not None:
+            result["model"] = self.model
         return result
 
 

@@ -109,6 +109,8 @@ class Tool:
     metadata: dict = field(default_factory=dict)
     display_price: Optional[str] = None  # e.g. "$0.03/megapixel"
     badges: Optional[List[str]] = None  # e.g. ["Fast", "Open Weights"]
+    model_vendor: Optional[str] = None  # Lab/company that made the model (e.g. "black-forest-labs")
+    model: Optional[str] = None  # Specific model, tight to parameters (e.g. "flux2-klein-9b")
 
     def to_descriptor(self) -> ToolDescriptor:
         """Convert to a ToolDescriptor for protocol transmission."""
@@ -170,6 +172,8 @@ class Tool:
             output_schema=output_schema,
             layout=layout_list,
             metadata=serializable_metadata,
+            model_vendor=self.model_vendor,
+            model=self.model,
         )
 
 
