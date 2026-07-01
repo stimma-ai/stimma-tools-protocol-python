@@ -73,6 +73,11 @@ class ToolParameter:
     # UI hints that pass through to x-* properties in the schema
     # e.g., {"control": "slider", "group": "sampling", "order": 1, "step": 0.1}
     ui_hints: Optional[Dict[str, Any]] = None
+    # For media-input parameters: declares which MIME types are accepted, so the
+    # host app can transcode media only when needed. Emitted as "x-accept-media".
+    # A dict with snake_case keys: {"mime_types": [...], "transcode_to": "...",
+    # "max_bytes": N} where "mime_types" is required and the others are optional.
+    accepted_media: Optional[Dict[str, Any]] = None
 
     def to_schema(self) -> dict:
         """Convert to JSON Schema property."""
@@ -93,6 +98,8 @@ class ToolParameter:
         if self.ui_hints:
             for key, value in self.ui_hints.items():
                 schema[f"x-{key}"] = value
+        if self.accepted_media:
+            schema["x-accept-media"] = self.accepted_media
         return schema
 
 

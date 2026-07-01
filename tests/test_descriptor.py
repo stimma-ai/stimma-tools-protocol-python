@@ -1,7 +1,7 @@
 """Tests for ToolDescriptor model_vendor / model fields."""
 
 from stimma_tools_protocol.protocol import ToolDescriptor
-from stimma_tools_protocol.tool import Tool
+from stimma_tools_protocol.tool import Tool, ToolParameter
 
 
 def test_descriptor_to_dict_includes_model_fields():
@@ -47,3 +47,24 @@ def test_tool_to_descriptor_propagates_model_fields():
     d = desc.to_dict()
     assert d["model_vendor"] == "alibaba"
     assert d["model"] == "qwen-image-2512"
+
+
+def test_parameter_to_schema_emits_accept_media():
+    param = ToolParameter(
+        name="audio",
+        type="string",
+        accepted_media={
+            "mime_types": ["audio/wav", "audio/mpeg"],
+            "transcode_to": "audio/wav",
+        },
+    )
+    schema = param.to_schema()
+    assert schema["x-accept-media"] == {
+        "mime_types": ["audio/wav", "audio/mpeg"],
+        "transcode_to": "audio/wav",
+    }
+
+
+def test_parameter_to_schema_omits_accept_media_when_unset():
+    param = ToolParameter(name="audio", type="string")
+    assert "x-accept-media" not in param.to_schema()
