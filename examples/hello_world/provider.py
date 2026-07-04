@@ -143,8 +143,8 @@ async def t2i_test_tool(
 @tool(
     slug="edit-test",
     display_name="Edit Test Tool",
-    task_types="image-edit",
-    description="Test tool for image-edit - converts input image to grayscale.",
+    task_types="image-to-image",
+    description="Test tool for image-to-image - converts input image to grayscale.",
     parameters=[
         ToolParameter(
             name="prompt",

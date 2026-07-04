@@ -1,7 +1,12 @@
 """Tests for ToolDescriptor model_vendor / model fields."""
 
 from stimma_tools_protocol.protocol import ToolDescriptor
-from stimma_tools_protocol.tool import Tool, ToolParameter
+from stimma_tools_protocol.tool import STANDARD_TASK_TYPES, Tool, ToolParameter
+
+
+def test_standard_task_types_include_video_to_video():
+    assert "image-to-image" in STANDARD_TASK_TYPES
+    assert "video-to-video" in STANDARD_TASK_TYPES
 
 
 def test_descriptor_to_dict_includes_model_fields():

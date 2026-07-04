@@ -76,6 +76,7 @@ python my_provider.py --websocket --port 8765
 ## Features
 
 - `@tool` decorator for defining tools with typed parameters
+- `STANDARD_TASK_TYPES` export for recognized STP task types, including `video-to-video`
 - Automatic JSON Schema generation
 - Progress reporting
 - Asset upload/download

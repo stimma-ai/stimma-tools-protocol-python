@@ -12,7 +12,15 @@ from stimma_tools_protocol.protocol import (
     STPError,
 )
 from stimma_tools_protocol.provider import Provider, ProviderConfig
-from stimma_tools_protocol.tool import tool, Tool, ToolParameter, ToolDescriptor, Group, Param
+from stimma_tools_protocol.tool import (
+    STANDARD_TASK_TYPES,
+    tool,
+    Tool,
+    ToolParameter,
+    ToolDescriptor,
+    Group,
+    Param,
+)
 from stimma_tools_protocol.transport import Transport, StdioTransport, WebSocketTransport
 from stimma_tools_protocol.assets import AssetManager, LocalAssetServer, FilesystemAssetManager
 from stimma_tools_protocol.runner import run_provider, setup_logging, create_argument_parser
@@ -49,6 +57,7 @@ __all__ = [
     "ProviderConfig",
     # Tools
     "tool",
+    "STANDARD_TASK_TYPES",
     "Tool",
     "ToolParameter",
     "ToolDescriptor",
