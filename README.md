@@ -1,5 +1,7 @@
 # stimma-tools-protocol
 
+[![CI](https://github.com/stimma-ai/stimma-tools-protocol-python/actions/workflows/ci.yml/badge.svg)](https://github.com/stimma-ai/stimma-tools-protocol-python/actions/workflows/ci.yml)
+
 Python framework for building Stimma Tool Protocol (STP) providers.
 
 STP providers expose tools (image generation, editing, etc.) to the Stimma application over JSON-RPC. This library handles the protocol plumbing so you can focus on implementing tools.

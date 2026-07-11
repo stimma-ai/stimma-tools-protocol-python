@@ -400,7 +400,9 @@ class LocalAssetServer(AssetManager):
 
         # Return route definitions
         return [
-            web.get(f"{endpoint_path}/{{asset_id}}", handle_get),
+            # A dedicated HEAD handler exists below; disable aiohttp's
+            # implicit GET-derived HEAD route so both can be registered.
+            web.get(f"{endpoint_path}/{{asset_id}}", handle_get, allow_head=False),
             web.put(f"{endpoint_path}/{{asset_id}}", handle_put),
             web.delete(f"{endpoint_path}/{{asset_id}}", handle_delete),
             web.head(f"{endpoint_path}/{{asset_id}}", handle_head),

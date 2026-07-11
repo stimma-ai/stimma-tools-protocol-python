@@ -214,10 +214,13 @@ class Provider:
         # Signal shutdown
         self._shutdown_event.set()
 
-        # Cancel all running jobs
+        # Cancel all running jobs and retain their tasks so shutdown can wait
+        # for cancellation cleanup before the transport disappears.
+        running_tasks = []
         for job in list(self._running_jobs.values()):
             if job.task and not job.task.done():
                 job.task.cancel()
+                running_tasks.append(job.task)
 
         # Wait for job processor to finish
         if self._job_processor_task:
@@ -226,6 +229,9 @@ class Provider:
                 await self._job_processor_task
             except asyncio.CancelledError:
                 pass
+
+        if running_tasks:
+            await asyncio.gather(*running_tasks, return_exceptions=True)
 
         # Send disconnect notification before stopping transport
         if self._handler:
@@ -424,11 +430,19 @@ class Provider:
                     pass
                 continue
 
-            # Get next job
-            job = self._queued_jobs.pop(0)
-
-            # Wait for capacity
+            # Keep the job visibly queued (and cancellable) until capacity is
+            # actually available.
             await self._job_semaphore.acquire()
+
+            if self._shutdown_event.is_set():
+                self._job_semaphore.release()
+                break
+            if not self._queued_jobs:
+                # The job may have been cancelled while capacity was pending.
+                self._job_semaphore.release()
+                continue
+
+            job = self._queued_jobs.pop(0)
 
             # Start execution
             self._running_jobs[job.request_id] = job
