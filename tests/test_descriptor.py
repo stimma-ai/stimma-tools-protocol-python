@@ -6,6 +6,7 @@ from stimma_tools_protocol.tool import STANDARD_TASK_TYPES, Tool, ToolParameter
 
 def test_standard_task_types_include_video_to_video():
     assert "image-to-image" in STANDARD_TASK_TYPES
+    assert "reference-to-video" in STANDARD_TASK_TYPES
     assert "video-to-video" in STANDARD_TASK_TYPES
 
 
@@ -73,3 +74,27 @@ def test_parameter_to_schema_emits_accept_media():
 def test_parameter_to_schema_omits_accept_media_when_unset():
     param = ToolParameter(name="audio", type="string")
     assert "x-accept-media" not in param.to_schema()
+
+
+def test_tool_to_descriptor_emits_cross_field_required_alternatives():
+    async def _run(context, **kwargs):
+        return {"assets": []}
+
+    tool = Tool(
+        slug="reference-to-video",
+        display_name="Reference to Video",
+        task_types=["reference-to-video"],
+        function=_run,
+        parameters=[
+            ToolParameter(name="input_images", type="array"),
+            ToolParameter(name="input_videos", type="array"),
+            ToolParameter(name="input_audios", type="array"),
+        ],
+        required_any=[["input_images"], ["input_videos"], ["input_audios"]],
+    )
+
+    assert tool.to_descriptor().parameter_schema["anyOf"] == [
+        {"required": ["input_images"], "properties": {"input_images": {"minItems": 1}}},
+        {"required": ["input_videos"], "properties": {"input_videos": {"minItems": 1}}},
+        {"required": ["input_audios"], "properties": {"input_audios": {"minItems": 1}}},
+    ]

@@ -16,6 +16,7 @@ STANDARD_TASK_TYPES = [
     "text-to-image",
     "image-to-image",
     "image-to-video",
+    "reference-to-video",
     "text-to-video",
     "video-to-video",
     "video-stitch",
@@ -136,6 +137,8 @@ class Tool:
     badges: Optional[List[str]] = None  # e.g. ["Fast", "Open Weights"]
     model_vendor: Optional[str] = None  # Lab/company that made the model (e.g. "black-forest-labs")
     model: Optional[str] = None  # Specific model, tight to parameters (e.g. "flux2-klein-9b")
+    # Cross-field alternatives; array fields are also constrained non-empty.
+    required_any: Optional[List[List[str]]] = None
 
     def to_descriptor(self) -> ToolDescriptor:
         """Convert to a ToolDescriptor for protocol transmission."""
@@ -150,6 +153,21 @@ class Tool:
         parameter_schema = {"type": "object", "properties": param_properties}
         if param_required:
             parameter_schema["required"] = param_required
+        if self.required_any:
+            branches = []
+            for fields in self.required_any:
+                if not fields:
+                    continue
+                branch = {"required": fields}
+                array_fields = {
+                    name: {"minItems": 1}
+                    for name in fields
+                    if param_properties.get(name, {}).get("type") == "array"
+                }
+                if array_fields:
+                    branch["properties"] = array_fields
+                branches.append(branch)
+            parameter_schema["anyOf"] = branches
 
         # Output schema (standard: list of produced assets)
         output_schema = {
