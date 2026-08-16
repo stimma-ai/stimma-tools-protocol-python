@@ -139,6 +139,10 @@ class Tool:
     model: Optional[str] = None  # Specific model, tight to parameters (e.g. "flux2-klein-9b")
     # Cross-field alternatives; array fields are also constrained non-empty.
     required_any: Optional[List[List[str]]] = None
+    # Readiness (capability `tool_status`). "ready" (default) or "needs_setup";
+    # status_items lists what is missing: [{kind, name, detail?}].
+    status: str = "ready"
+    status_items: Optional[List[dict]] = None
 
     def to_descriptor(self) -> ToolDescriptor:
         """Convert to a ToolDescriptor for protocol transmission."""
@@ -217,6 +221,8 @@ class Tool:
             metadata=serializable_metadata,
             model_vendor=self.model_vendor,
             model=self.model,
+            status=self.status,
+            status_items=self.status_items,
         )
 
 

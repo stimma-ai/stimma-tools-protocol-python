@@ -151,6 +151,8 @@ class ProviderRegistration:
     capabilities: dict = field(default_factory=dict)
     asset_endpoint: Optional[str] = None  # Provider's asset endpoint (relative or absolute URL)
     stp_version: str = STP_VERSION
+    # Optional presentation hints: {"icon": <data URI>, "management_url": <relative or absolute URL>}
+    presentation: Optional[dict] = None
 
     def to_dict(self) -> dict:
         result = {
@@ -164,6 +166,8 @@ class ProviderRegistration:
             result["server"] = self.server
         if self.asset_endpoint:
             result["asset_endpoint"] = self.asset_endpoint
+        if self.presentation:
+            result["presentation"] = self.presentation
         return result
 
 
@@ -197,6 +201,10 @@ class ToolDescriptor:
     metadata: dict = field(default_factory=dict)
     model_vendor: Optional[str] = None  # Lab/company that made the model (e.g. "black-forest-labs")
     model: Optional[str] = None  # Specific model, tight to parameters (e.g. "flux2-klein-9b")
+    # Tool readiness (capability `tool_status`): "ready" or "needs_setup".
+    # None = ready and omitted on the wire.
+    status: Optional[str] = None
+    status_items: Optional[list] = None  # [{kind, name, detail?}] when needs_setup
 
     def to_dict(self) -> dict:
         result = {
