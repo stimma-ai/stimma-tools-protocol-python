@@ -66,6 +66,34 @@ async def test_provider_executes_reports_progress_and_normalizes_assets(tmp_path
     assert disconnect["params"] == {"reason": "shutdown"}
 
 
+async def test_provider_state_includes_update_attention(tmp_path):
+    transport = MemoryTransport()
+    provider = Provider(
+        ProviderConfig("test", "Test", provider_state=True),
+        transport,
+        ToolRegistry(),
+    )
+    started = asyncio.create_task(
+        provider.start(FilesystemAssetManager(str(tmp_path)))
+    )
+    registration = await transport.host_receive(method="provider.register")
+    await transport.host_respond(
+        registration,
+        {"session_id": "session-1", "stp_version": "1.0"},
+    )
+    await started
+
+    await provider.send_state("ready", attention="update_available")
+
+    notification = await transport.host_receive(method="provider.state")
+    assert notification["params"] == {
+        "state": "ready",
+        "attention": "update_available",
+    }
+    await provider.stop()
+    await transport.host_receive(method="provider.disconnect")
+
+
 async def test_queueing_cancellation_and_shutdown_cleanup(tmp_path):
     transport = MemoryTransport()
     registry = ToolRegistry()
