@@ -230,6 +230,7 @@ class ExecuteRequest:
     request_id: str
     tool_id: str
     parameters: dict = field(default_factory=dict)
+    input_sidecars: dict = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, data: dict) -> "ExecuteRequest":
@@ -237,6 +238,7 @@ class ExecuteRequest:
             request_id=data["request_id"],
             tool_id=data["tool_id"],
             parameters=data.get("parameters", {}),
+            input_sidecars=data.get("input_sidecars", {}),
         )
 
 

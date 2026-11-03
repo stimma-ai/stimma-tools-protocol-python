@@ -56,10 +56,13 @@ def normalize_output(result: Any) -> dict:
         return result
     out = dict(result)
     asset_id = out.pop("asset_id", None)
+    sidecars = out.pop("sidecars", None)
     out["assets"] = (
         [{"asset_id": asset_id, "type": _infer_media_type(asset_id), "role": "primary"}]
         if asset_id else []
     )
+    if asset_id and sidecars:
+        out["assets"][0]["sidecars"] = sidecars
     return out
 
 
@@ -76,6 +79,7 @@ class ProviderConfig:
     presentation: Optional[dict] = None
     # Provider emits provider.state / provider.notify (capability `provider_state`).
     provider_state: bool = False
+    media_sidecars: bool = False
     asset_endpoint: str = "/assets"  # Provider's asset endpoint path
 
 
@@ -87,6 +91,7 @@ class ExecutionContext:
     parameters: dict
     assets: AssetManager
     _provider: "Provider"
+    input_sidecars: dict = field(default_factory=dict)
 
     async def report_progress(self, progress: float) -> None:
         """Report progress (0.0 to 1.0) for this execution."""
@@ -99,6 +104,7 @@ class Job:
     request_id: str
     tool: Tool
     parameters: dict
+    input_sidecars: dict = field(default_factory=dict)
     task: Optional[asyncio.Task] = None
     cancelled: bool = False
 
@@ -127,6 +133,7 @@ class Provider:
         self._handler: Optional[MessageHandler] = None
         self._assets: Optional[AssetManager] = None
         self._session_id: Optional[str] = None
+        self.host_capabilities: dict = {}
 
         # Job management
         self._queued_jobs: List[Job] = []
@@ -289,6 +296,8 @@ class Provider:
 
     def _build_capabilities(self) -> dict:
         caps = {"cancel": self._config.supports_cancel}
+        if self._config.media_sidecars:
+            caps["media_sidecars"] = True
         if self._config.provider_state:
             caps["provider_state"] = True
         return caps
@@ -323,6 +332,7 @@ class Provider:
 
         result = RegistrationResponse.from_dict(response.result)
         self._session_id = result.session_id
+        self.host_capabilities = result.capabilities or {}
 
         logger.info(f"Registered with session ID: {self._session_id}")
         await self.on_registered()
@@ -393,6 +403,7 @@ class Provider:
             request_id=exec_request.request_id,
             tool=tool,
             parameters=exec_request.parameters,
+            input_sidecars=exec_request.input_sidecars,
         )
         self._queued_jobs.append(job)
         self._job_available.set()
@@ -500,6 +511,7 @@ class Provider:
                 parameters=parameters,
                 assets=self._assets,
                 _provider=self,
+                input_sidecars=job.input_sidecars,
             )
 
             # Execute the tool
@@ -510,7 +522,7 @@ class Provider:
                 await self._send_result(
                     request_id=job.request_id,
                     success=True,
-                    output=normalize_output(result),
+                    output=self._output_for_host(result),
                 )
 
         except asyncio.CancelledError:
@@ -586,6 +598,19 @@ class Provider:
             metadata=metadata or {},
         )
         await self._handler.send_notification("tools.result", result.to_dict())
+
+    def _output_for_host(self, result):
+        output = normalize_output(result)
+        if not self.host_wants_media_sidecars:
+            output = {**output, "assets": [
+                {k: v for k, v in a.items() if k != "sidecars"}
+                for a in output.get("assets", [])
+            ]}
+        return output
+
+    @property
+    def host_wants_media_sidecars(self) -> bool:
+        return bool(self.host_capabilities.get("media_sidecars"))
 
     @property
     def host_wants_tool_status(self) -> bool:
